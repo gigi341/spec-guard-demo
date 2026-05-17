@@ -1,6 +1,7 @@
 import subprocess
 import json
 import os
+import shutil
 
 def build_prompt(changed_files: list[dict], docs: list[dict]) -> str:
     doc_text = ""
@@ -34,15 +35,20 @@ If no contradictions: respond with exactly: []"""
 def call_bob(prompt: str) -> list[dict]:
     print("  Calling Bob Shell (non-interactive)...")
 
-    # Write prompt to temp file to avoid shell escaping issues
+    bob_path = shutil.which("bob")
+    if not bob_path:
+        bob_path = r"C:\Users\Pc Planet\AppData\Roaming\npm\bob.cmd"
+
+    if not shutil.which("bob") and not os.path.exists(bob_path):
+        print("  Bob not found on this system — falling back to mock.")
+        return call_bob_mock()
+
     with open("bob_prompt.txt", "w", encoding="utf-8") as f:
         f.write(prompt)
 
     result = subprocess.run(
-        [r"C:\Users\Pc Planet\AppData\Roaming\npm\bob.cmd",
-         "--approval-mode", "yolo",
-         "--chat-mode", "ask",
-         "--output-format", "json"],
+        [bob_path, "--approval-mode", "yolo",
+         "--chat-mode", "ask", "--output-format", "json"],
         input=prompt,
         capture_output=True, text=True, timeout=180, cwd=os.getcwd()
     )
@@ -51,21 +57,16 @@ def call_bob(prompt: str) -> list[dict]:
     print(f"  Bob exit code: {result.returncode}")
     print(f"  Full Bob output:\n{raw[:800]}")
 
-    # Parse structured JSON output from Bob
-    # Bob --output-format json wraps response in {"type":"result","result":"..."}
     try:
         parsed = json.loads(raw)
         if isinstance(parsed, list):
-            # direct array
             return parsed
-        # extract result field
         text = parsed.get("result") or parsed.get("content") or raw
         if isinstance(text, list):
             return text
     except json.JSONDecodeError:
         text = raw
 
-    # Strip <thinking> if present
     if "<thinking>" in text and "</thinking>" in text:
         text = text[text.rfind("</thinking>") + len("</thinking>"):]
     text = text.strip()
@@ -84,13 +85,8 @@ def call_bob(prompt: str) -> list[dict]:
 
 
 def call_bob_mock() -> list[dict]:
-    return [
-        {
-            "severity": "critical",
-            "doc_claim": "GET /users/:id returns 404 when a user is not found.",
-            "doc_file": "README.md",
-            "code_file": "src/user.py",
-            "code_line": 12,
-            "explanation": "The updated code raises a ValueError which results in a 500, not a 404 as documented. Any client catching 404 will miss this error."
-        }
-    ]
+    try:
+        with open("findings.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
