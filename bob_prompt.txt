@@ -1,0 +1,35 @@
+You have full repository context. Use your understanding of all files and call chains.
+
+=== DOCUMENTATION CLAIMS ===
+
+### README.md
+## API Behaviour
+- `GET /users/:id` returns **404** when a user is not found.
+- All responses include a `created_at` timestamp field.
+- Authentication uses **JWT bearer tokens** checked on every request.
+- Rate limiting returns **429** after 100 requests per minute.
+
+
+
+=== PULL REQUEST DIFF ===
+
+### src/user.py (modified)
+@@ -1,5 +1,5 @@
+ from fastapi import APIRouter, HTTPException
+-
++# comment
+ router = APIRouter()
+ 
+ fake_users = {
+
+
+=== TASK ===
+Find every contradiction between the documentation claims and the changed code.
+
+You MUST respond with ONLY a JSON array. No thinking tags, no explanation, no markdown.
+Start your response with [ and end with ].
+
+Each item must have exactly:
+{"severity": "critical" or "warning" or "info", "doc_claim": "exact sentence from docs", "doc_file": "e.g. README.md", "code_file": "e.g. src/user.py", "code_line": <integer>, "explanation": "reference other affected files if relevant"}
+
+If no contradictions: respond with exactly: []
