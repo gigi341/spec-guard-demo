@@ -1,0 +1,34 @@
+[
+  {
+    "severity": "critical",
+    "doc_claim": "GET /users/:id returns 404 when a user is not found.",
+    "doc_file": "README.md",
+    "code_file": "src/user.py",
+    "code_line": 18,
+    "explanation": "Implementation raises HTTPException with status_code=500 instead of 404 when user is not found"
+  },
+  {
+    "severity": "critical",
+    "doc_claim": "All responses include a created_at timestamp field.",
+    "doc_file": "README.md",
+    "code_file": "src/user.py",
+    "code_line": 24,
+    "explanation": "User objects in fake_users dict (lines 5-8) and returned response only contain 'id' and 'name' fields, missing 'created_at' timestamp"
+  },
+  {
+    "severity": "critical",
+    "doc_claim": "Authentication uses JWT bearer tokens checked on every request.",
+    "doc_file": "README.md",
+    "code_file": "src/user.py",
+    "code_line": 11,
+    "explanation": "The get_user endpoint has no authentication decorator or JWT token validation logic"
+  },
+  {
+    "severity": "critical",
+    "doc_claim": "Rate limiting returns 429 after 100 requests per minute.",
+    "doc_file": "README.md",
+    "code_file": "src/user.py",
+    "code_line": 11,
+    "explanation": "No rate limiting middleware or decorator is applied to the endpoint"
+  }
+]
